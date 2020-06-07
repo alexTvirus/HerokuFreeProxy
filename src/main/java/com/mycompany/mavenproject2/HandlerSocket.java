@@ -30,7 +30,9 @@ public class HandlerSocket extends Thread {
     public HandlerSocket(String idsession, Session session) throws UnknownHostException, IOException {
         this.idsession = idsession;
         this.session = session;
+        System.out.println("tao ket noi 1");
         this.sk = new Socket("0.0.0.0", 55901);
+        System.out.println("tao ket noi 2");
         sk.setKeepAlive(true);
         sk.setTcpNoDelay(true);
     }

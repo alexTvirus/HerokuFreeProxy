@@ -82,15 +82,16 @@ public class MyWebSocket {
                     return;
                 }
             }
+            System.out.println("MyWebSocket chay onmsg login 0");
             HandlerSocket handlerSocket = new HandlerSocket(session.getId(), session);
 
             listSocket.add(handlerSocket);
-            System.out.println("MyWebSocket chay onmsg login");
+            System.out.println("MyWebSocket chay onmsg login 1");
             ByteBuffer bufferout = XyluPacketLogin(handlerSocket, buffer);
             session.getBasicRemote().sendBinary(bufferout);
             handlerSocket.start();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("loi"+e.getMessage());
         }
 
 //        for (Session peer : peers) {
@@ -112,7 +113,7 @@ public class MyWebSocket {
     @OnOpen
     public void onOpen(Session session) {
         peers.add(session);
-        System.out.println("onOpen::" + session.getId());
+        System.out.println("onOpen::=" + session.getId());
     }
 
 //    @OnClose
@@ -123,7 +124,7 @@ public class MyWebSocket {
     public void onMessage(String message, Session session) throws InterruptedException {
         System.out.println("onMessage::From=" + session.getId() + " Message=" + message);
         try {
-            session.getBasicRemote().sendText("Hello Client " + session.getId() + "!");
+            session.getBasicRemote().sendText("1Hello Client " + session.getId() + "!");
         } catch (IOException e) {
             e.printStackTrace();
         }
