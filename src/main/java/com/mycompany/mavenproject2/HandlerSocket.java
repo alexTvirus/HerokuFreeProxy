@@ -30,48 +30,15 @@ public class HandlerSocket extends Thread {
     public HandlerSocket(String idsession, Session session) throws UnknownHostException, IOException {
         this.idsession = idsession;
         this.session = session;
+        // tạo socket kết nối đến muserver thông quang port 55901 , muserver đã chạy và open cổng 55901
+
         System.out.println("tao ket noi 1");
-        this.sk = new Socket("0.0.0.0", 55901);
+        this.sk = new Socket("127.0.0.1", 55901);
         System.out.println("tao ket noi 2");
-        sk.setKeepAlive(true);
-        sk.setTcpNoDelay(true);
     }
 
     @Override
     public void run() {
-        try {
-            ByteBuffer bufferout = null;
-            while (true) {
-                if (sk.isConnected()) {
-                    InputStream instr = sk.getInputStream();
-                    int buffSize = 8192;
-                    byte[] buff = null;
-                    byte[] out = null;
-                    if (buffSize > 0) {
-                        buff = new byte[buffSize];
-                        System.out.println("HandlerSocket s>c0");
-                        int ret_read = instr.read(buff);
-                        System.out.println("HandlerSocket s>c1");
-                        if (ret_read != -1) {
-                            out = new byte[ret_read];
-                            for (int i = 0; i < ret_read; i++) {
-                                out[i] = buff[i];
-                            }
-                            bufferout = ByteBuffer.wrap(out);
-                            this.session.getBasicRemote().sendBinary(bufferout);
-                            System.out.println("HandlerSocket s>c2");
-                        }
-                        if (ret_read == -1) {
-                            break;
-                        }
-                    }
-
-                }
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-
     }
 
     public Socket getSk() {

@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import javax.enterprise.context.ApplicationScoped;
 import javax.websocket.EncodeException;
 import javax.websocket.OnClose;
@@ -37,22 +38,17 @@ public class MyWebSocket {
     private static List<HandlerSocket> listSocket = Collections.synchronizedList(new ArrayList<HandlerSocket>());
     static Set<Session> peers = Collections.synchronizedSet(new HashSet<Session>());
 
-    public void XyluPacket(HandlerSocket handlerSocket, ByteBuffer buffer) throws IOException {
-
+    public ByteBuffer XyluPacket(HandlerSocket handlerSocket, ByteBuffer buffer) throws IOException, Exception {
+        // mục đích là đẩy packet của mu client vào muserver
         OutputStream wr = handlerSocket.sk.getOutputStream();
+        ByteBuffer bufferout = null;
         byte[] arr = new byte[buffer.remaining()];
         buffer.get(arr);
         wr.write(arr);
         wr.flush();
-        System.out.println("MyWebSocket c>s");
-    }
-
-    public ByteBuffer XyluPacketLogin(HandlerSocket handlerSocket, ByteBuffer buffer) throws IOException {
-
-        ByteBuffer bufferout = null;
         if (handlerSocket.sk.isConnected()) {
             InputStream instr = handlerSocket.sk.getInputStream();
-            int buffSize = 8192;
+            int buffSize = handlerSocket.sk.getReceiveBufferSize();
             byte[] buff = null;
             byte[] out = null;
             if (buffSize > 0) {
@@ -64,10 +60,14 @@ public class MyWebSocket {
                         out[i] = buff[i];
                     }
                 }
+                if (ret_read == -1) {
+                    throw new Exception();
+                }
             }
             bufferout = ByteBuffer.wrap(out);
-
         }
+//        }
+
         return bufferout;
     }
 
@@ -78,36 +78,20 @@ public class MyWebSocket {
             for (HandlerSocket handlerSocket : listSocket) {
                 if (session.getId().equals(handlerSocket.idsession)) {
                     System.out.println("MyWebSocket chay onmsg loop");
-                    XyluPacket(handlerSocket, buffer);
+                    ByteBuffer bufferout = XyluPacket(handlerSocket, buffer);
+                    session.getBasicRemote().sendBinary(bufferout);
                     return;
                 }
             }
             System.out.println("MyWebSocket chay onmsg login 0");
             HandlerSocket handlerSocket = new HandlerSocket(session.getId(), session);
-
             listSocket.add(handlerSocket);
             System.out.println("MyWebSocket chay onmsg login 1");
-            ByteBuffer bufferout = XyluPacketLogin(handlerSocket, buffer);
+            ByteBuffer bufferout = XyluPacket(handlerSocket, buffer);
             session.getBasicRemote().sendBinary(bufferout);
-            handlerSocket.start();
         } catch (Exception e) {
-            System.out.println("loi"+e.getMessage());
+            System.out.println("loi" + e.getMessage());
         }
-
-//        for (Session peer : peers) {
-//            if (session.getId().equals(peer.getId())) { // do not resend the message to its sender
-//                System.out.println("chay onmsg ser");
-//                byte[] b = new byte[20];
-////                int x = in.read(b);
-//                ByteBuffer buffer1 = ByteBuffer.wrap(b);
-//                session.getBasicRemote().sendBinary(buffer1);
-//            }
-//
-//        }
-    }
-
-    @OnClose
-    public void onClose(Session session) throws IOException {
     }
 
     @OnOpen
@@ -116,15 +100,22 @@ public class MyWebSocket {
         System.out.println("onOpen::=" + session.getId());
     }
 
-//    @OnClose
-//    public void onClose(Session session) {
-//        System.out.println("onClose::" + session.getId());
-//    }
+    @OnClose
+    public void onClose(Session session) throws IOException {
+        System.out.println("onClose::" + session.getId());
+        for (HandlerSocket handlerSocket : listSocket) {
+            if (session.getId().equals(handlerSocket.idsession)) {
+                handlerSocket.sk.close();
+                listSocket.remove(handlerSocket);
+            }
+        }
+    }
+
     @OnMessage
     public void onMessage(String message, Session session) throws InterruptedException {
         System.out.println("onMessage::From=" + session.getId() + " Message=" + message);
         try {
-            session.getBasicRemote().sendText("1Hello Client " + session.getId() + "!");
+            session.getBasicRemote().sendText("Hello Client " + session.getId() + "!");
         } catch (IOException e) {
             e.printStackTrace();
         }
