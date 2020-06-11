@@ -5,20 +5,13 @@
  */
 package com.mycompany.mavenproject2;
 
-import static com.mycompany.mavenproject2.MyWebSocket.lock;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.websocket.Session;
-import org.apache.commons.io.IOUtils;
 
 /**
  *
@@ -54,7 +47,6 @@ public class HandlerSocket extends Thread {
                 if (sk.isConnected()) {
                     InputStream instr = sk.getInputStream();
                     int buffSize = sk.getReceiveBufferSize();
-//                    int buffSize = 8192;
                     if (buffSize > 0) {
                         buff = new byte[buffSize];
                         System.out.println("read in server");

@@ -5,22 +5,14 @@
  */
 package com.mycompany.mavenproject2;
 
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import javax.enterprise.context.ApplicationScoped;
 import javax.websocket.EncodeException;
 import javax.websocket.OnClose;
@@ -34,7 +26,6 @@ import javax.websocket.server.ServerEndpoint;
 @ServerEndpoint("/endpoint")
 public class MyWebSocket {
 
-    public static Object lock = new Object();
     private static List<HandlerSocket> listSocket = Collections.synchronizedList(new ArrayList<HandlerSocket>());
     static Set<Session> peers = Collections.synchronizedSet(new HashSet<Session>());
 
