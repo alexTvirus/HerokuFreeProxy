@@ -32,6 +32,7 @@ public class HandlerSocket extends Thread {
         this.sk = new Socket("127.0.0.1", 55901);
         sk.setTcpNoDelay(true);
         sk.setKeepAlive(true);
+        sk.setSoTimeout(15000);
         System.out.println("tao ket noi 2");
         start();
     }
