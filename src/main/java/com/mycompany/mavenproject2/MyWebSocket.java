@@ -14,6 +14,7 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -34,41 +35,16 @@ import javax.websocket.server.ServerEndpoint;
 public class MyWebSocket {
 
     public static Object lock = new Object();
-    private static PushTimeService pst;
     private static List<HandlerSocket> listSocket = Collections.synchronizedList(new ArrayList<HandlerSocket>());
     static Set<Session> peers = Collections.synchronizedSet(new HashSet<Session>());
 
-    public ByteBuffer XyluPacket(HandlerSocket handlerSocket, ByteBuffer buffer) throws IOException, Exception {
+    public void XyluPacketx(HandlerSocket handlerSocket, ByteBuffer buffer) throws IOException, Exception {
         // mục đích là đẩy packet của mu client vào muserver
         OutputStream wr = handlerSocket.sk.getOutputStream();
-        ByteBuffer bufferout = null;
         byte[] arr = new byte[buffer.remaining()];
         buffer.get(arr);
         wr.write(arr);
         wr.flush();
-        if (handlerSocket.sk.isConnected()) {
-            InputStream instr = handlerSocket.sk.getInputStream();
-            int buffSize = handlerSocket.sk.getReceiveBufferSize();
-            byte[] buff = null;
-            byte[] out = null;
-            if (buffSize > 0) {
-                buff = new byte[buffSize];
-                int ret_read = instr.read(buff);
-                if (ret_read != -1) {
-                    out = new byte[ret_read];
-                    for (int i = 0; i < ret_read; i++) {
-                        out[i] = buff[i];
-                    }
-                }
-                if (ret_read == -1) {
-                    throw new Exception();
-                }
-            }
-            bufferout = ByteBuffer.wrap(out);
-        }
-//        }
-
-        return bufferout;
     }
 
     @OnMessage
@@ -78,37 +54,26 @@ public class MyWebSocket {
             for (HandlerSocket handlerSocket : listSocket) {
                 if (session.getId().equals(handlerSocket.idsession)) {
                     System.out.println("MyWebSocket chay onmsg loop");
-                    ByteBuffer bufferout = XyluPacket(handlerSocket, buffer);
-                    session.getBasicRemote().sendBinary(bufferout);
+                    XyluPacketx(handlerSocket, buffer);
                     return;
                 }
             }
-            System.out.println("MyWebSocket chay onmsg login 0");
-            HandlerSocket handlerSocket = new HandlerSocket(session.getId(), session);
-            listSocket.add(handlerSocket);
-            System.out.println("MyWebSocket chay onmsg login 1");
-            ByteBuffer bufferout = XyluPacket(handlerSocket, buffer);
-            session.getBasicRemote().sendBinary(bufferout);
         } catch (Exception e) {
             System.out.println("loi" + e.getMessage());
         }
     }
 
     @OnOpen
-    public void onOpen(Session session) {
+    public void onOpen(Session session) throws IOException {
         peers.add(session);
+        HandlerSocket handlerSocket = new HandlerSocket(session.getId(), session);
+        listSocket.add(handlerSocket);
         System.out.println("onOpen::=" + session.getId());
     }
 
     @OnClose
     public void onClose(Session session) throws IOException {
         System.out.println("onClose::" + session.getId());
-        for (HandlerSocket handlerSocket : listSocket) {
-            if (session.getId().equals(handlerSocket.idsession)) {
-                handlerSocket.sk.close();
-                listSocket.remove(handlerSocket);
-            }
-        }
     }
 
     @OnMessage
