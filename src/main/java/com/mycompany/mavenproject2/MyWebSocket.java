@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
@@ -26,7 +27,7 @@ import javax.websocket.server.ServerEndpoint;
 @ServerEndpoint("/endpoint")
 public class MyWebSocket {
 
-    private static List<HandlerSocket> listSocket = Collections.synchronizedList(new ArrayList<HandlerSocket>());
+    public static List<HandlerSocket> listSocket = Collections.synchronizedList(new ArrayList<HandlerSocket>());
     static Set<Session> peers = Collections.synchronizedSet(new HashSet<Session>());
 
     public void XyluPacketx(HandlerSocket handlerSocket, ByteBuffer buffer) throws IOException, Exception {
@@ -64,6 +65,7 @@ public class MyWebSocket {
 
     @OnClose
     public void onClose(Session session) throws IOException {
+        // tắt socket tương ứng với id session , trường hợp này xảy ra khi client tắt kết nối
         System.out.println("onClose::" + session.getId());
     }
 

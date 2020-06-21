@@ -28,12 +28,10 @@ public class HandlerSocket extends Thread {
         this.session = session;
         // tạo socket kết nối đến muserver thông quang port 55901 , muserver đã chạy và open cổng 55901
 
-        System.out.println("tao ket noi 1");
         this.sk = new Socket("127.0.0.1", 55901);
-        sk.setTcpNoDelay(true);
-        sk.setKeepAlive(true);
+//        sk.setTcpNoDelay(true);
+//        sk.setKeepAlive(true);
         sk.setSoTimeout(15000);
-        System.out.println("tao ket noi 2");
         start();
     }
 
@@ -48,9 +46,9 @@ public class HandlerSocket extends Thread {
                 if (sk.isConnected()) {
                     InputStream instr = sk.getInputStream();
                     int buffSize = sk.getReceiveBufferSize();
+//                    int buffSize = 131072  ;
                     if (buffSize > 0) {
                         buff = new byte[buffSize];
-                        System.out.println("read in server");
 //                        Thread.sleep(1000);
                         int ret_read = instr.read(buff);
 //                        Thread.sleep(1000);
@@ -65,6 +63,7 @@ public class HandlerSocket extends Thread {
                             if (sk.isConnected()) {
                                 sk.close();
                             }
+                            MyWebSocket.listSocket.remove(this);
                             break;
                         }
                     }
