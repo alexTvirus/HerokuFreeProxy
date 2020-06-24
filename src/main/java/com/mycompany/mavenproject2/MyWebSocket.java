@@ -28,7 +28,6 @@ import javax.websocket.server.ServerEndpoint;
 public class MyWebSocket {
 
     public static List<HandlerSocket> listSocket = Collections.synchronizedList(new ArrayList<HandlerSocket>());
-    static Set<Session> peers = Collections.synchronizedSet(new HashSet<Session>());
 
     public void XyluPacketx(HandlerSocket handlerSocket, ByteBuffer buffer) throws IOException, Exception {
         // mục đích là đẩy packet của mu client vào muserver
@@ -57,7 +56,6 @@ public class MyWebSocket {
 
     @OnOpen
     public void onOpen(Session session) throws IOException {
-        peers.add(session);
         HandlerSocket handlerSocket = new HandlerSocket(session.getId(), session);
         listSocket.add(handlerSocket);
         System.out.println("onOpen::=" + session.getId());
@@ -66,6 +64,20 @@ public class MyWebSocket {
     @OnClose
     public void onClose(Session session) throws IOException {
         // tắt socket tương ứng với id session , trường hợp này xảy ra khi client tắt kết nối
+        synchronized (listSocket) {
+            Iterator<HandlerSocket> it = listSocket.iterator();
+            HandlerSocket handlerSocket;
+            while (it.hasNext()) {
+                handlerSocket = it.next();
+                if (session.getId().equals(handlerSocket.idsession)) {
+                    if (handlerSocket.sk != null && handlerSocket.sk.isConnected()) {
+                        handlerSocket.sk.close();
+                    }
+                    it.remove();
+                }
+                
+            }
+        }
         System.out.println("onClose::" + session.getId());
     }
 

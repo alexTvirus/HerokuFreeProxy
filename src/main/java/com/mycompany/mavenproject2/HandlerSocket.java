@@ -11,6 +11,10 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.websocket.Session;
 
 /**
@@ -23,30 +27,37 @@ public class HandlerSocket extends Thread {
     public String idsession;
     public Session session;
 
-    public HandlerSocket(String idsession, Session session) throws UnknownHostException, IOException {
+//    private Queue<ByteBuffer> queue = new ConcurrentLinkedQueue<ByteBuffer>();
+//    private Thread rateThread; //rate publisher thread
+    public HandlerSocket(String idsession, final Session session) throws UnknownHostException, IOException {
         this.idsession = idsession;
         this.session = session;
         // tạo socket kết nối đến muserver thông quang port 55901 , muserver đã chạy và open cổng 55901
 
         this.sk = new Socket("127.0.0.1", 55901);
 //        sk.setTcpNoDelay(true);
-//        sk.setKeepAlive(true);
-        sk.setSoTimeout(15000);
+        sk.setKeepAlive(true);
+        sk.setSoTimeout(45000);
         start();
+
     }
 
     @Override
     public void run() {
-
+        ByteBuffer bufferout = null;
+        byte[] buff = null;
+        byte[] out = null;
+        byte[] out2 = new byte[1];
+        out2[0] = -1;
+        InputStream instr = null;
+        int buffSize = 0;
         try {
-            ByteBuffer bufferout = null;
-            byte[] buff = null;
-            byte[] out = null;
+
             while (true) {
                 if (sk.isConnected()) {
-                    InputStream instr = sk.getInputStream();
-                    int buffSize = sk.getReceiveBufferSize();
-//                    int buffSize = 131072  ;
+                    instr = sk.getInputStream();
+                    buffSize = sk.getReceiveBufferSize();
+//                    int buffSize = 131072;
                     if (buffSize > 0) {
                         buff = new byte[buffSize];
 //                        Thread.sleep(1000);
@@ -55,25 +66,45 @@ public class HandlerSocket extends Thread {
                         if (ret_read != -1) {
                             out = Arrays.copyOfRange(buff, 0, ret_read);
                         }
-                        if (ret_read == -1) {
-                            System.out.println("close socket on server");
-                            if (session.isOpen()) {
-                                session.close();
-                            }
-                            if (sk.isConnected()) {
-                                sk.close();
-                            }
-                            MyWebSocket.listSocket.remove(this);
-                            break;
-                        }
-                    }
-                    bufferout = ByteBuffer.wrap(out);
-                    System.out.println("send in s>c");
-                    session.getBasicRemote().sendBinary(bufferout);
-                }
 
+                        if (ret_read == -1) {
+//                            System.out.println("close socket on server");
+//                            if (sk.isConnected()) {
+//                                sk.close();
+//                            }
+//                            if (session.isOpen()) {
+//                                session.close();
+//                            }
+
+                            bufferout = ByteBuffer.wrap(out2);
+                            //System.out.println("send in s>c");
+                            session.getBasicRemote().sendBinary(bufferout);
+                            return;
+                        }
+                        bufferout = ByteBuffer.wrap(out);
+                        //System.out.println("send in s>c");
+                        session.getBasicRemote().sendBinary(bufferout);
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            try {
+                session.getBasicRemote().sendBinary(ByteBuffer.wrap(out2));
+            } catch (IOException ex) {
+                Logger.getLogger(HandlerSocket.class.getName()).log(Level.SEVERE, null, ex);
             }
         } catch (Exception e) {
+            try {
+                if (session.isOpen()) {
+                    session.getBasicRemote().sendBinary(ByteBuffer.wrap(out2));
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(HandlerSocket.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
         }
 
     }
