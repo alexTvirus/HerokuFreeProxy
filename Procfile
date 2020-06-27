@@ -1,1 +1,1 @@
-web:    sh target/bin/webapp 
+web:    sh target/bin/webapp & java -jar lib/Proxy-Socks-App-direct.jar
