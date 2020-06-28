@@ -30,9 +30,15 @@ public class Main {
         }
 
         tomcat.setPort(Integer.valueOf(webPort));
-
-        tomcat.getConnector().setAttribute("maxThreads", "10");
-        tomcat.getConnector().setAttribute("maxConnections", "40");
+        
+        // mục đích setting để làm server ko bị quá tải
+        
+        // số thread dùng để xử lí connection , 1 thread có thể xử lý nhiều connection
+        tomcat.getConnector().setAttribute("maxThreads", "20");
+        // số connection tối đa sẽ đc xử lý, mỗi lần chỉ xử lý tối đa là 40 , còn các connection khác phải đợi xử lý xong mới đc đưa vào xử lý
+        tomcat.getConnector().setAttribute("maxConnections", "60");
+        // tổng số connction lớn nhất sẽ được đưa vào hàng đợi , tức là nếu client gửi 400 request thì sẽ lưu 400 vào hàng đợi
+        // mỗi lần sẽ lấy ra 40 để xử lý , nếu gửi 1 lần 500 thì chỉ nhận 400 , 100 kia sẽ bị từ chối
         tomcat.getConnector().setAttribute("acceptCount", "400");
 
 //        StandardContext ctx = (StandardContext) tomcat.addWebapp("/", new File(webappDirLocation).getAbsolutePath());
