@@ -88,6 +88,7 @@ public class HandlerSocket extends Thread {
                         break;
                     }
                 } else {
+                    session.getBasicRemote().sendBinary(ByteBuffer.wrap(out2));
                     break;
                 }
             }

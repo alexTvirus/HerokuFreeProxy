@@ -42,10 +42,15 @@ public class MyWebSocket {
     public void onMessage(ByteBuffer buffer, Session session) throws IOException, EncodeException {
 
         try {
+
             for (HandlerSocket handlerSocket : listSocket) {
                 if (session.getId().equals(handlerSocket.idsession)) {
                     System.out.println("MyWebSocket chay onmsg loop");
-                    XyluPacketx(handlerSocket, buffer);
+                    if (buffer.capacity() == 1) {
+                        handlerSocket.sk.close();
+                    } else {
+                        XyluPacketx(handlerSocket, buffer);
+                    }
                     return;
                 }
             }
@@ -75,7 +80,7 @@ public class MyWebSocket {
                     }
                     it.remove();
                 }
-                
+
             }
         }
         System.out.println("onClose::" + session.getId());
