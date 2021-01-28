@@ -45,17 +45,23 @@ public class MyWebSocket {
 
             for (HandlerSocket handlerSocket : listSocket) {
                 if (session.getId().equals(handlerSocket.idsession)) {
-                    System.out.println("MyWebSocket chay onmsg loop");
+//                    System.out.println("MyWebSocket chay onmsg loop");
                     if (buffer.capacity() == 1) {
-                        handlerSocket.sk.close();
+                        if (handlerSocket.sk != null) {
+                            handlerSocket.sk.close();
+//                            System.out.println("tat socket");
+                        }
                     } else {
-                        XyluPacketx(handlerSocket, buffer);
+                        if (handlerSocket.sk != null) {
+                            XyluPacketx(handlerSocket, buffer);
+                        }
+
                     }
                     return;
                 }
             }
         } catch (Exception e) {
-            System.out.println("loi" + e.getMessage());
+            System.out.println("loi onMessage byte" + e.getMessage());
         }
     }
 
@@ -90,9 +96,21 @@ public class MyWebSocket {
     public void onMessage(String message, Session session) throws InterruptedException {
         System.out.println("onMessage::From=" + session.getId() + " Message=" + message);
         try {
-            session.getBasicRemote().sendText("Hello Client " + session.getId() + "!");
-        } catch (IOException e) {
-            e.printStackTrace();
+            if (message.equals("start")) {
+
+                for (int i = 0; i < listSocket.size(); i++) {
+                    if (session.getId().equals(listSocket.get(i).idsession)) {
+                        listSocket.set(i, new HandlerSocket(session.getId(), session));
+                        System.out.println("start");
+                        listSocket.get(i).startconnect();
+                        listSocket.get(i).start();
+                        return;
+                    }
+                }
+
+            }
+        } catch (Exception e) {
+            System.out.println("loi onMessage string" + e.getMessage());
         }
     }
 

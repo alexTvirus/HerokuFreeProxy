@@ -32,18 +32,24 @@ public class HandlerSocket extends Thread {
     public HandlerSocket(String idsession, final Session session) throws UnknownHostException, IOException {
         this.idsession = idsession;
         this.session = session;
-        // tạo socket kết nối đến muserver thông quang port 55901 , muserver đã chạy và open cổng 55901
+    }
 
-        this.sk = new Socket("127.0.0.1", 55901);
+    public void startconnect() {
+        try {
+            // tạo socket kết nối đến muserver thông quang port 55901 , muserver đã chạy và open cổng 55901
+
+            this.sk = new Socket("127.0.0.1", 55901);
 //        sk.setTcpNoDelay(true);
-        sk.setKeepAlive(true);
-        sk.setSoTimeout(45000);
-        start();
-
+            sk.setKeepAlive(true);
+            sk.setSoTimeout(45000);
+        } catch (Exception e) {
+            Logger.getLogger(HandlerSocket.class.getName()).log(Level.SEVERE, null, e);
+        }
     }
 
     @Override
     public void run() {
+
         ByteBuffer bufferout = null;
         byte[] buff = null;
         byte[] out = null;
